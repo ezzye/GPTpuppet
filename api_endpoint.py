@@ -8,9 +8,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import os
 from dotenv import load_dotenv
 import time
+import traceback
+
 
 # Load environment variables
 load_dotenv()
@@ -57,41 +62,98 @@ async def read_root():
 async def login():
     if not TWITTER_USERNAME or not TWITTER_PASSWORD:
         raise HTTPException(status_code=400, detail="Twitter credentials not provided")
+
+    # login_url = "https://twitter.com/login"
     try:
-        browser.get(f"https://twitter.com/{TWITTER_USERNAME}")
-        time.sleep(3)
+        loop = asyncio.get_event_loop()
+        executor = ThreadPoolExecutor()
+        await loop.run_in_executor(executor, lambda: browser.get("https://twitter.com/login"))
+    except Exception as e:
+        print("Twitter login page not found.")
+        print(f"An error occurred: {e}")
+        print(f"Traceback: {traceback.format_exc()}")  # You'll need to import traceback at the beginning of your file
 
-        # XPath to locate the username input field
-        username_xpath = "//div[@class='css-175oi2r r-18u37iz r-1pi2tsx r-1wtj0ep r-u8s1d r-13qz1uu']/div/input"
-        # Wait until the username field is present
-        username_field = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.XPATH, username_xpath)))
+    # Try to locate the Accept cookie button
+    try:
+        accept_cookies_xpath = "//span[contains(text(), 'Accept all cookies')]"
+        accept_cookies_button = WebDriverWait(browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, accept_cookies_xpath))
+        )
+        print("XPath of the Accept cookies button found:", accept_cookies_button.get_attribute('outerHTML'))
+        accept_cookies_button.click()
+    except Exception as e:
+        print("Accept cookies button not found.")
+        print(f"An error occurred: {e}")
+        print(f"Traceback: {traceback.format_exc()}")  # You'll need to import traceback at the beginning of your file
 
+    try:
+        # XPath to locate the username input field using property autocomplete="username"
+        username_xpath = "//input[@name='text' and @autocomplete='username']"
 
-        # Find the username field and input the username
-        username_field = browser.find_element(By.NAME, "session[username_or_email]")
+        # Find the element using the XPath
+        username_field = WebDriverWait(browser, 10).until(
+            EC.presence_of_element_located((By.XPATH, username_xpath))
+        )
+        print("XPath of the user name found:", username_field.get_attribute('outerHTML'))
 
+        # Send the username to the input field
         username_field.send_keys(TWITTER_USERNAME)
 
-        # Click on the "Next" button, if present
-        try:
-            next_button = browser.find_element(By.XPATH, "//span[text()='Next']")
-            next_button.click()
-            time.sleep(3)
-        except Exception:
-            pass  # "Next" button may not be visible or necessary
-
-        # Find the password field and input the password
-        password_field = browser.find_element(By.NAME, "session[password]")
-        password_field.send_keys(TWITTER_PASSWORD)
-        password_field.send_keys(Keys.RETURN)
-        time.sleep(5)
-
-        # After login, check if we are on the home page
-        if "home" not in browser.current_url:
-            raise HTTPException(status_code=401, detail="Login failed")
-        return {"message": "Login successful"}
+        # Press Enter to submit the form
+        username_field.send_keys(Keys.RETURN)
+        time.sleep(3)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print("Twitter user name not found.")
+        print(f"An error occurred: {e}")
+        print(f"Traceback: {traceback.format_exc()}")  # You'll need to import traceback at the beginning of your file
+
+    # # Click on the "Next" button, if present
+    try:
+        # XPath to locate the Next button
+        next_button_xpath = "//span[contains(text(), 'Next')]"
+
+        # Wait until the Next button is clickable
+        next_button = WebDriverWait(browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, next_button_xpath))
+        )
+
+        # Click the Next button
+        next_button.click()
+    except Exception as e:
+        print("Twitter next button not found.")
+        print(f"An error occurred: {e}")
+        print(f"Traceback: {traceback.format_exc()}")  # You'll need to import traceback at the beginning of your file
+
+    # except (NoSuchElementException, TimeoutException) as e:
+    #     print("Next button may not be visible or necessary.")
+    # Additional error handling if needed
+
+    # Find and fill in the password
+    try:
+        password_field = WebDriverWait(browser, 10).until(
+            EC.presence_of_element_located((By.NAME, "password"))
+        )
+        password_field.send_keys(TWITTER_PASSWORD)
+
+        # Find and click the Log In button
+        login_button_xpath = "//div[@data-testid='LoginForm_Login_Button']"
+        login_button = WebDriverWait(browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, login_button_xpath))
+        )
+        login_button.click()
+        time.sleep(3)
+    except Exception as e:
+        print("Twitter password not found.")
+        print(f"An error occurred: {e}")
+        print(f"Traceback: {traceback.format_exc()}")  # You'll need to import traceback at the beginning of your file
+
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=str(e))
+
+    # After login, check if we are on the home page
+    if f"twitter.com/home" not in browser.current_url:
+        raise HTTPException(status_code=401, detail="Login failed")
+    return {"message": "Login successful"}
 
 
 # Placeholder endpoints for other actions
@@ -158,4 +220,5 @@ async def list_following():
 # Run the API using Uvicorn
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
