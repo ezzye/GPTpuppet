@@ -9,13 +9,13 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from fastapi.applications import Lifespan
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import os
 from dotenv import load_dotenv
 import time
 import traceback
-
 
 # Load environment variables
 load_dotenv()
@@ -28,7 +28,7 @@ app = FastAPI()
 
 # Configure Selenium to use the ChromeDriver in headless mode
 chrome_options = Options()
-chrome_options.add_argument("--headless")
+# chrome_options.add_argument("--headless")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
@@ -42,12 +42,14 @@ service = Service(chrome_driver_path)
 browser = webdriver.Chrome(service=service, options=chrome_options)
 
 
-@app.on_event("startup")
-async def startup_event():
+# Alternatively, you can use the Lifespan API directly
+@app.router.lifespan.on_event("startup")
+async def new_startup_event():
+    # Your new startup code
     pass
 
 
-@app.on_event("shutdown")
+@app.router.lifespan.on_event("shutdown")
 async def shutdown_event():
     if browser:
         browser.quit()
