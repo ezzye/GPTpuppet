@@ -9,7 +9,6 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
-from fastapi.applications import Lifespan
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import os
@@ -46,7 +45,7 @@ browser = webdriver.Chrome(service=service, options=chrome_options)
 @app.on_event("startup")
 async def new_startup_event():
     # Your new startup code
-    pass # probably not needed
+    pass  # probably not needed
 
 
 @app.on_event("shutdown")
@@ -186,14 +185,81 @@ async def repost():
     return {"message": "Repost functionality to be implemented"}
 
 
-@app.get("/read_profile")
-async def read_profile():
-    return {"message": "Read profile functionality to be implemented"}
+@app.get("/read/{twitter_username}")
+async def read_posts(twitter_username: str):
+    print(f"Twitter Username: {twitter_username}")
+    return {"message": f"Read posts for Twitter user: {twitter_username}"}
 
 
-@app.get("/read_posts")
-async def read_posts():
-    return {"message": "Read posts functionality to be implemented"}
+@app.get("/{twitter_username}/profile")
+async def read_profile(twitter_username: str):
+    try:
+        # Now, use Selenium to find elements and extract data.
+        # The selectors are based on your provided classes and could change over time.
+        # You might need to update them if Twitter updates its HTML structure.
+
+        # Extract the user description
+        user_description_element = WebDriverWait(browser, 10).until(
+            EC.presence_of_element_located((By.XPATH, '//div[@data-testid="UserDescription"]'))
+        )
+        user_description_html = user_description_element.get_attribute('innerHTML')
+
+        # Extract the other details similarly using the appropriate selectors
+
+        # Construct the JSON response
+        profile_data = {
+            "Username": f"@{twitter_username}",
+            "Name": "Extracted Name",
+            "UserDescription": user_description_html,
+            # Add other details similarly
+        }
+        return profile_data
+    except TimeoutException:
+        raise HTTPException(status_code=404, detail="Profile page did not load in time")
+    except NoSuchElementException:
+        raise HTTPException(status_code=404, detail="Could not find the profile data")
+
+
+@app.get("/read/{twitter_username}/verified_followers")
+async def read_posts(twitter_username: str):
+    print(f"Twitter Username: {twitter_username}")
+    return {"message": f"Read posts for Twitter user: {twitter_username}"}
+
+
+@app.get("/read/{twitter_username}/followers_you_follow")
+async def read_posts(twitter_username: str):
+    print(f"Twitter Username: {twitter_username}")
+    return {"message": f"Read posts for Twitter user: {twitter_username}"}
+
+
+@app.get("/read/{twitter_username}/followers")
+async def read_posts(twitter_username: str):
+    print(f"Twitter Username: {twitter_username}")
+    return {"message": f"Read posts for Twitter user: {twitter_username}"}
+
+
+@app.get("/read/{twitter_username}/following")
+async def read_posts(twitter_username: str):
+    print(f"Twitter Username: {twitter_username}")
+    return {"message": f"Read posts for Twitter user: {twitter_username}"}
+
+
+@app.get("/read/{twitter_username}/likes")
+async def read_posts(twitter_username: str):
+    print(f"Twitter Username: {twitter_username}")
+    return {"message": f"Read posts for Twitter user: {twitter_username}"}
+
+
+@app.get("/read/{twitter_username}/with_replies")
+async def read_posts(twitter_username: str):
+    print(f"Twitter Username: {twitter_username}")
+    return {"message": f"Read posts for Twitter user: {twitter_username}"}
+
+
+@app.get("/read/{twitter_username}/media")
+async def read_posts(twitter_username: str):
+    print(f"Twitter Username: {twitter_username}")
+    return {"message": f"Read posts for Twitter user: {twitter_username}"}
 
 
 @app.get("/read_threads")
