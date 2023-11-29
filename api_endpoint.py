@@ -43,13 +43,13 @@ browser = webdriver.Chrome(service=service, options=chrome_options)
 
 
 # Alternatively, you can use the Lifespan API directly
-@app.router.lifespan.on_event("startup")
+@app.on_event("startup")
 async def new_startup_event():
     # Your new startup code
-    pass
+    pass # probably not needed
 
 
-@app.router.lifespan.on_event("shutdown")
+@app.on_event("shutdown")
 async def shutdown_event():
     if browser:
         browser.quit()
@@ -72,19 +72,6 @@ async def login():
         await loop.run_in_executor(executor, lambda: browser.get("https://twitter.com/login"))
     except Exception as e:
         print("Twitter login page not found.")
-        print(f"An error occurred: {e}")
-        print(f"Traceback: {traceback.format_exc()}")  # You'll need to import traceback at the beginning of your file
-
-    # Try to locate the Accept cookie button
-    try:
-        accept_cookies_xpath = "//span[contains(text(), 'Accept all cookies')]"
-        accept_cookies_button = WebDriverWait(browser, 10).until(
-            EC.element_to_be_clickable((By.XPATH, accept_cookies_xpath))
-        )
-        print("XPath of the Accept cookies button found:", accept_cookies_button.get_attribute('outerHTML'))
-        accept_cookies_button.click()
-    except Exception as e:
-        print("Accept cookies button not found.")
         print(f"An error occurred: {e}")
         print(f"Traceback: {traceback.format_exc()}")  # You'll need to import traceback at the beginning of your file
 
@@ -112,7 +99,8 @@ async def login():
     # # Click on the "Next" button, if present
     try:
         # XPath to locate the Next button
-        next_button_xpath = "//span[contains(text(), 'Next')]"
+        # next_button_xpath = "//span[contains(text(), 'Next')]"
+        next_button_xpath = "div[contains(@role, 'button')]//span[contains(text(), 'Next')]"
 
         # Wait until the Next button is clickable
         next_button = WebDriverWait(browser, 10).until(
@@ -122,7 +110,7 @@ async def login():
         # Click the Next button
         next_button.click()
     except Exception as e:
-        print("Twitter next button not found.")
+        print("Twitter next button not found.  Maybe not needed.")
         print(f"An error occurred: {e}")
         print(f"Traceback: {traceback.format_exc()}")  # You'll need to import traceback at the beginning of your file
 
@@ -153,6 +141,20 @@ async def login():
     #     raise HTTPException(status_code=500, detail=str(e))
 
     # After login, check if we are on the home page
+
+    # Try to locate the Accept cookie button
+    try:
+        accept_cookies_xpath = "//span[contains(text(), 'Accept all cookies')]"
+        accept_cookies_button = WebDriverWait(browser, 10).until(
+            EC.element_to_be_clickable((By.XPATH, accept_cookies_xpath))
+        )
+        print("XPath of the Accept cookies button found:", accept_cookies_button.get_attribute('outerHTML'))
+        accept_cookies_button.click()
+    except Exception as e:
+        print("Accept cookies button not found.")
+        print(f"An error occurred: {e}")
+        print(f"Traceback: {traceback.format_exc()}")  # You'll need to import traceback at the beginning of your file
+
     if f"twitter.com/home" not in browser.current_url:
         raise HTTPException(status_code=401, detail="Login failed")
     return {"message": "Login successful"}
