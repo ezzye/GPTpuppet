@@ -62,6 +62,8 @@ async def read_root():
 @app.post("/login")
 async def login():
     if not TWITTER_USERNAME or not TWITTER_PASSWORD:
+        print(f"Twitter Username: {TWITTER_USERNAME}")
+        print(f"Twitter Password: {TWITTER_PASSWORD}")
         raise HTTPException(status_code=400, detail="Twitter credentials not provided")
 
     # login_url = "https://twitter.com/login"
@@ -95,28 +97,6 @@ async def login():
         print(f"An error occurred: {e}")
         print(f"Traceback: {traceback.format_exc()}")  # You'll need to import traceback at the beginning of your file
 
-    # # Click on the "Next" button, if present
-    # try:
-    #     # XPath to locate the Next button
-    #     # next_button_xpath = "//span[contains(text(), 'Next')]"
-    #     next_button_xpath = "div[contains(@role, 'button')]//span[contains(text(), 'Next')]"
-    #
-    #     # Wait until the Next button is clickable
-    #     next_button = WebDriverWait(browser, 10).until(
-    #         EC.element_to_be_clickable((By.XPATH, next_button_xpath))
-    #     )
-    #
-    #     # Click the Next button
-    #     next_button.click()
-    # except Exception as e:
-    #     print("Twitter next button not found.  Maybe not needed.")
-    #     print(f"An error occurred: {e}")
-    #     print(f"Traceback: {traceback.format_exc()}")  # You'll need to import traceback at the beginning of your file
-
-    # except (NoSuchElementException, TimeoutException) as e:
-    #     print("Next button may not be visible or necessary.")
-    # Additional error handling if needed
-
     # Find and fill in the password
     try:
         password_field = WebDriverWait(browser, 10).until(
@@ -135,11 +115,6 @@ async def login():
         print("Twitter password not found.")
         print(f"An error occurred: {e}")
         print(f"Traceback: {traceback.format_exc()}")  # You'll need to import traceback at the beginning of your file
-
-    # except Exception as e:
-    #     raise HTTPException(status_code=500, detail=str(e))
-
-    # After login, check if we are on the home page
 
     # Try to locate the Accept cookie button
     try:
