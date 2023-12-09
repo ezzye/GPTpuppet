@@ -194,64 +194,57 @@ async def read_posts(twitter_username: str):
 @app.get("/{twitter_username}/profile")
 async def read_profile(twitter_username: str):
     try:
-        # Now, use Selenium to find elements and extract data.
-        # The selectors are based on your provided classes and could change over time.
-        # You might need to update them if Twitter updates its HTML structure.
         browser.get(f"https://twitter.com/{twitter_username}")
 
         user_description_xpath = "//div[@data-testid='UserDescription']"  # text
-        name_xpath = "//div[@data-testid='UserName']" # text
-        country_xpath = "//div[@data-testid='UserLocation']" # text
-        location_xpath = "//div[@data-testid='UserProfileHeader_Items']//span[@data-testid='UserLocation']" # text
-        link_url_xpath = "//div[@data-testid='UserProfileHeader_Items']//a[@data-testid='UserUrl']" # href
-        link_text_xpath = "//div[@data-testid='UserProfileHeader_Items']//a[@data-testid='UserUrl']" # text
-        user_join_text_xpath = "//div[@data-testid='UserProfileHeader_Items']//span[@data-testid='UserJoinDate']" # text
-
-
-        # user_description_element = WebDriverWait(browser, 10).until(
-        #     EC.presence_of_element_located((By.XPATH, user_description_xpath))
-        # )
-        # user_description_html = user_description_element.get_attribute('innerHTML')
-        #
-        # name_element = WebDriverWait(browser, 10).until(
-        #     EC.presence_of_element_located((By.XPATH, name_xpath))
-        # )
-        # name_text = name_element.text
-        #
-        # # Extract the other details similarly using the appropriate selectors
-        # WebDriverWait(browser, 10).until(
-        #     EC.presence_of_element_located((By.XPATH, '//div[@data-testid="UserProfileHeader_Items"]'))
-        # )
+        name_xpath = "//div[@data-testid='UserName']"  # text
+        location_xpath = "//div[@data-testid='UserProfileHeader_Items']//span[@data-testid='UserLocation']"  # text
+        link_url_xpath = "//div[@data-testid='UserProfileHeader_Items']//a[@data-testid='UserUrl']"  # href
+        link_text_xpath = "//div[@data-testid='UserProfileHeader_Items']//a[@data-testid='UserUrl']"  # text
+        user_join_text_xpath = "//div[@data-testid='UserProfileHeader_Items']//span[@data-testid='UserJoinDate']"  # text
 
         # Extract the user description
-        user_description_element = browser.find_element(By.XPATH, user_description_xpath)
-        user_description = user_description_element.text
+        user_description_element = WebDriverWait(browser, 10).until(
+            EC.presence_of_element_located((By.XPATH, user_description_xpath))
+        )
+        user_description_text = user_description_element.text
+        user_description_html = user_description_element.get_attribute('innerHTML')
 
-        name_element = browser.find_element(By.XPATH, name_xpath)
+        name_element = WebDriverWait(browser, 10).until(
+            EC.presence_of_element_located((By.XPATH, name_xpath))
+        )
         name = name_element.text
 
-        country_element = browser.find_element(By.XPATH, country_xpath)
+        country_element = WebDriverWait(browser, 10).until(
+            EC.presence_of_element_located((By.XPATH, location_xpath))
+        )
         country = country_element.text
 
-        link_url_element = browser.find_element(By.XPATH, link_url_xpath)
+        link_url_element = WebDriverWait(browser, 10).until(
+            EC.presence_of_element_located((By.XPATH, link_url_xpath))
+        )
         link_url = link_url_element.get_attribute('href')
 
-        link_text_element = browser.find_element(By.XPATH, link_text_xpath)
+        link_text_element = WebDriverWait(browser, 10).until(
+            EC.presence_of_element_located((By.XPATH, link_text_xpath))
+        )
         link_text = link_text_element.text
 
-        user_join_date_element = browser.find_element(By.XPATH, user_join_text_xpath)
+        user_join_date_element = WebDriverWait(browser, 10).until(
+            EC.presence_of_element_located((By.XPATH, user_join_text_xpath))
+        )
         user_join_date = user_join_date_element.text
 
         # Construct the JSON response
         profile_data = {
             "Username": f"@{twitter_username}",
-            "Name": name_text,
+            "Name": name,
+            "UserDescriptionText": user_description_text,
             "UserDescription": user_description_html,
-            "Country": country_text,
-            "location": location_text,
+            "Country": country,
             "LinkUrl": link_url,
             "LinkText": link_text,
-            "UserJoinDate": user_join_text
+            "UserJoinDate": user_join_date
         }
         return profile_data
     except TimeoutException:
